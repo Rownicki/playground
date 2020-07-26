@@ -1,0 +1,27 @@
+version: '3'
+services:
+  database:
+    image: postgres:9.5-alpine
+    container_name: database
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - 8888:5432
+    networks:
+      node_net:
+        ipv4_address: 172.28.1.1
+  flask_api:
+    build: app
+    container_name: flask_api
+    ports:
+      - 9999:5000
+    networks:
+      node_net:
+        ipv4_address: 172.28.1.2
+networks:
+  node_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
