@@ -37,7 +37,6 @@ app = Flask(__name__)
 def create_year_plot(year, data):
     names = []
     count = []
-    i = 0
 
     for d in data:
         names.append(d[0])
@@ -48,18 +47,16 @@ def create_year_plot(year, data):
     p.vbar(x=names, top=count, width=0.9)
     p.xgrid.grid_line_color = None
     p.y_range.start = 0
-    html = file_html(p, CDN, "year plot")
 
-    return html
+    return file_html(p, CDN, "year plot")
 
 
 def create_name_plot(name, data):
     years = []
-
     for i in range(2000, 2020):
         years.append(str(i))
-    count = []
 
+    count = []
     for d in data:
         count.append(d[1])
 
@@ -69,8 +66,8 @@ def create_name_plot(name, data):
     p.xgrid.grid_line_color = None
     p.y_range.start = 0
 
-    html = file_html(p, CDN, "name plot")
-    return html
+    return file_html(p, CDN, "name plot")
+
 
 def fill_database(data_csv):
     with open(data_csv, mode="r") as csv_file:
@@ -78,10 +75,10 @@ def fill_database(data_csv):
         next(csv_reader)
         for row in csv_reader:
             try:
-                cursor.execute('''INSERT INTO names (year, name, number, gender) VALUES (%s, %s, %s, %s)''',
-                               (row[0], row[1], row[2], row[3]))
-            except psycopg2.Error as error:
-                print("ERROR:", error)
+                sql = "INSERT INTO names (year, name, number, gender) VALUES (%s, %s, %s, %s)"
+                cursor.execute(sql, (row[0], row[1], row[2], row[3]))
+            except psycopg2.Error as err:
+                print("ERROR:", err)
 
 
 @app.route("/year/<int:year>/<string:gender>")
@@ -89,8 +86,8 @@ def year(year, gender):
     try:
         sql = "SELECT name, number FROM names WHERE (year = %s AND gender = %s)"
         cursor.execute(sql, (year, gender))
-    except psycopg2.Error as error:
-        print("ERROR:", error)
+    except psycopg2.Error as err:
+        print("ERROR:", err)
 
     data = cursor.fetchall()
     return create_year_plot(year, data)
@@ -101,13 +98,13 @@ def name(name, gender):
     try:
         sql = "SELECT year, number FROM names WHERE (name = %s AND gender = %s)"
         cursor.execute(sql, (name, gender,))
+    except psycopg2.Error as err:
+        print("ERROR:", err)
 
-    except psycopg2.Error as error:
-        print("ERROR:", error)
     data = cursor.fetchall()
     return create_name_plot(name, data)
 
 
 if __name__ == "__main__":
-    fill_database("app/data.csv")
+    fill_database("data.csv")
     app.run(host="0.0.0.0")
